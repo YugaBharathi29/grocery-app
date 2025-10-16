@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Order #{{ order.id }} - Grocery Store{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('customer.orders') }}">My Orders</a></li>
+            <li class="breadcrumb-item active">Order #{{ order.id }}</li>
+        </ol>
+    </nav>
+    
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2><i class="fas fa-receipt me-2 text-primary"></i>Order #{{ order.id }}</h2>
+            <p class="text-muted mb-0">
+                <i class="fas fa-calendar me-1"></i>{{ order.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+            </p>
+        </div>
+        <span class="badge {% if order.status == 'Pending' %}bg-warning{% elif order.status == 'Processing' %}bg-info{% elif order.status == 'Shipped' %}bg-primary{% elif order.status == 'Delivered' %}bg-success{% else %}bg-danger{% endif %} fs-4">
+            {% if order.status == 'Pending' %}
+                <i class="fas fa-clock me-1"></i>
+            {% elif order.status == 'Processing' %}
+                <i class="fas fa-sync me-1"></i>
+            {% elif order.status == 'Shipped' %}
+                <i class="fas fa-shipping-fast me-1"></i>
+            {% elif order.status == 'Delivered' %}
+                <i class="fas fa-check-circle me-1"></i>
+            {% else %}
+                <i class="fas fa-times-circle me-1"></i>
+            {% endif %}
+            {{ order.status }}
+        </span>
+    </div>
+    
+    <div class="row">
+        <!-- Order Items -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">
+                        <i class="fas fa-box-open me-2"></i>Order Items
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Details</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order_item, product in order_items %}
+                                <tr>
+                                    <td style="width: 100px;">
+                                        {% if product.image %}
+                                            {% if product.image.startswith('http') or product.image.startswith('data:image') %}
+                                                <img src="{{ product.image }}" 
+                                                     class="img-fluid rounded" 
+                                                     alt="{{ product.name }}" 
+                                                     style="width: 80px; height: 80px; object-fit: cover;"
+                                                     onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22%3E%3Crect fill=%22%23f0f0f0%22 width=%2280%22 height=%2280%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3ENo Image%3C/text%3E%3C/svg%3E';">
+                                            {% else %}
+                                                <img src="{{ url_for('static', filename='uploads/products/' + product.image) }}" 
+                                                     class="img-fluid rounded" 
+                                                     alt="{{ product.name }}" 
+                                                     style="width: 80px; height: 80px; object-fit: cover;"
+                                                     onerror="this.onerror=null; this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2280%22 height=%2280%22%3E%3Crect fill=%22%23f0f0f0%22 width=%2280%22 height=%2280%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22%3ENo Image%3C/text%3E%3C/svg%3E';">
+                                            {% endif %}
+                                        {% else %}
+                                            <div class="bg-light rounded d-flex align-items-center justify-content-center" 
+                                                 style="width: 80px; height: 80px;">
+                                                <i class="fas fa-image text-muted fa-2x"></i>
+                                            </div>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <h6 class="mb-1">{{ product.name }}</h6>
+                                        <small class="text-muted">
+                                            <i class="fas fa-tag me-1"></i>{{ product.category.name }}
+                                        </small>
+                                    </td>
+                                    <td>₹{{ "%.2f"|format(order_item.price) }}</td>
+                                    <td>
+                                        <span class="badge bg-secondary">× {{ order_item.quantity }}</span>
+                                    </td>
+                                    <td>
+                                        <strong class="text-success">₹{{ "%.2f"|format(order_item.quantity * order_item.price) }}</strong>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot class="table-light">
+                                <tr>
+                                    <td colspan="4" class="text-end">
+                                        <strong>Total Amount:</strong>
+                                    </td>
+                                    <td>
+                                        <strong class="text-success fs-5">₹{{ "%.2f"|format(order.total_amount) }}</strong>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Details Sidebar -->
+        <div class="col-lg-4">
+            <!-- Order Status Timeline -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Order Status
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item {% if order.status in ['Pending', 'Processing', 'Shipped', 'Delivered'] %}active{% endif %}">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Order Placed</span>
+                        </div>
+                        <div class="timeline-item {% if order.status in ['Processing', 'Shipped', 'Delivered'] %}active{% endif %}">
+                            <i class="fas fa-box"></i>
+                            <span>Processing</span>
+                        </div>
+                        <div class="timeline-item {% if order.status in ['Shipped', 'Delivered'] %}active{% endif %}">
+                            <i class="fas fa-shipping-fast"></i>
+                            <span>Shipped</span>
+                        </div>
+                        <div class="timeline-item {% if order.status == 'Delivered' %}active{% endif %}">
+                            <i class="fas fa-home"></i>
+                            <span>Delivered</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Delivery Information -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-truck me-2"></i>Delivery Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <strong><i class="fas fa-user me-2 text-primary"></i>Customer:</strong><br>
+                        <span class="ms-4">{{ order.user.username }}</span>
+                    </p>
+                    <p class="mb-2">
+                        <strong><i class="fas fa-envelope me-2 text-info"></i>Email:</strong><br>
+                        <span class="ms-4">{{ order.user.email }}</span>
+                    </p>
+                    <p class="mb-2">
+                        <strong><i class="fas fa-phone me-2 text-success"></i>Phone:</strong><br>
+                        <span class="ms-4">{{ order.phone }}</span>
+                    </p>
+                    <p class="mb-0">
+                        <strong><i class="fas fa-map-marker-alt me-2 text-danger"></i>Address:</strong><br>
+                        <span class="ms-4">{{ order.delivery_address }}</span>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Order Summary -->
+            <div class="card shadow-sm">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0">
+                        <i class="fas fa-receipt me-2"></i>Order Summary
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Total Items:</span>
+                        <strong>{{ order_items|length }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Order Date:</span>
+                        <small>{{ order.created_at.strftime('%b %d, %Y') }}</small>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>Total Amount:</strong>
+                        <strong class="text-success fs-5">₹{{ "%.2f"|format(order.total_amount) }}</strong>
+                    </div>
+                </div>
+                <div class="card-footer bg-white">
+                    <a href="{{ url_for('customer.orders') }}" class="btn btn-outline-secondary w-100">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item a {
+    color: #28a745;
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline;
+}
+
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    padding: 15px 0 15px 30px;
+    border-left: 2px solid #ddd;
+    color: #999;
+}
+
+.timeline-item.active {
+    border-left-color: #28a745;
+    color: #28a745;
+    font-weight: 500;
+}
+
+.timeline-item i {
+    position: absolute;
+    left: -11px;
+    top: 15px;
+    background: white;
+    border: 2px solid #ddd;
+    border-radius: 50%;
+    padding: 3px;
+    font-size: 0.9rem;
+}
+
+.timeline-item.active i {
+    border-color: #28a745;
+    color: #28a745;
+}
+
+.timeline-item:last-child {
+    border-left: none;
+}
+
+.card {
+    border: none;
+    border-radius: 10px;
+}
+
+.table tbody tr {
+    transition: background-color 0.2s ease;
+}
+
+.table tbody tr:hover {
+    background-color: #f8f9fa;
+}
+</style>
+{% endblock %}

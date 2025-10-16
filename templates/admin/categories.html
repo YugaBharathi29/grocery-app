@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Categories - Admin{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-list me-2"></i>Manage Categories</h2>
+        <a href="{{ url_for('admin.add_category') }}" class="btn btn-success">
+            <i class="fas fa-plus me-2"></i>Add Category
+        </a>
+    </div>
+    
+    {% if categories %}
+    <div class="row g-4">
+        {% for category in categories %}
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm category-card">
+                <!-- Category Image with proper handling -->
+                {% if category.image %}
+                    {% if category.image.startswith('http') or category.image.startswith('data:image') %}
+                        <!-- URL or data URI -->
+                        <img src="{{ category.image }}" 
+                             class="card-img-top" 
+                             alt="{{ category.name }}" 
+                             style="height: 200px; object-fit: cover;">
+                    {% else %}
+                        <!-- Local file -->
+                        <img src="{{ url_for('static', filename='uploads/categories/' + category.image) }}" 
+                             class="card-img-top" 
+                             alt="{{ category.name }}" 
+                             style="height: 200px; object-fit: cover;">
+                    {% endif %}
+                {% else %}
+                    <!-- No image - placeholder with icon and text -->
+                    <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                         style="height: 200px;">
+                        <div class="text-center">
+                            <i class="fas fa-folder fa-3x text-muted mb-2"></i>
+                            <p class="text-muted small mb-0">No Image Available</p>
+                        </div>
+                    </div>
+                {% endif %}
+                
+                <div class="card-body">
+                    <h5 class="card-title fw-bold">{{ category.name }}</h5>
+                    <p class="card-text text-muted">{{ category.description }}</p>
+                    <p class="mb-2">
+                        <strong>Products:</strong> 
+                        <span class="badge bg-info">{{ category.products.count() }}</span>
+                    </p>
+                    <p class="mb-0">
+                        <strong>Status:</strong>
+                        {% if category.is_active %}
+                            <span class="badge bg-success">
+                                <i class="fas fa-check-circle me-1"></i>Active
+                            </span>
+                        {% else %}
+                            <span class="badge bg-secondary">
+                                <i class="fas fa-ban me-1"></i>Inactive
+                            </span>
+                        {% endif %}
+                    </p>
+                </div>
+                
+                <div class="card-footer bg-white">
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <a href="{{ url_for('admin.edit_category', id=category.id) }}" 
+                               class="btn btn-primary btn-sm w-100">
+                                <i class="fas fa-edit me-1"></i>Edit
+                            </a>
+                        </div>
+                        <div class="col-6">
+                            <a href="{{ url_for('admin.delete_category', id=category.id) }}" 
+                               class="btn btn-danger btn-sm w-100"
+                               onclick="return confirm('Are you sure you want to delete this category?')">
+                                <i class="fas fa-trash me-1"></i>Delete
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-folder-open text-muted" style="font-size: 5rem;"></i>
+        <h4 class="text-muted mt-3">No categories found</h4>
+        <p class="text-muted">Start by adding your first category!</p>
+        <a href="{{ url_for('admin.add_category') }}" class="btn btn-success">
+            <i class="fas fa-plus me-2"></i>Add Category
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.category-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15) !important;
+}
+
+.card-img-top {
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+/* No Image Placeholder */
+.card-img-top.bg-light {
+    border-bottom: 1px solid #dee2e6;
+}
+
+/* Badge Styles */
+.badge {
+    font-size: 0.85rem;
+    padding: 0.4em 0.6em;
+}
+
+/* Card Footer */
+.card-footer {
+    border-top: 1px solid #f0f0f0;
+}
+
+/* Button Hover Effect */
+.btn {
+    transition: all 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+}
+</style>
+{% endblock %}

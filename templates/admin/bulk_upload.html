@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Upload Products{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-upload me-2"></i>Bulk Upload Products</h2>
+        <a href="{{ url_for('admin.products') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Back to Products
+        </a>
+    </div>
+    
+    <div class="alert alert-info">
+        <h5><i class="fas fa-info-circle me-2"></i>CSV/Excel Format Instructions:</h5>
+        <p class="mb-2">Your file must have these columns:</p>
+        <ul class="mb-2">
+            <li><strong>name</strong> - Product name (required)</li>
+            <li><strong>price</strong> - Product price in ₹ (required)</li>
+            <li><strong>category_id</strong> - Category ID number (required)</li>
+            <li><strong>description</strong> - Product description (optional)</li>
+            <li><strong>stock</strong> - Stock quantity (optional, default: 0)</li>
+            <li><strong>image</strong> - Image URL (optional)</li>
+        </ul>
+        <p class="mb-0">
+            <a href="{{ url_for('admin.download_sample_csv') }}" class="btn btn-sm btn-primary">
+                <i class="fas fa-download me-1"></i>Download Sample CSV
+            </a>
+        </p>
+    </div>
+    
+    <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0"><i class="fas fa-file-upload me-2"></i>Upload File</h5>
+        </div>
+        <div class="card-body">
+            <form method="POST" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                
+                <div class="mb-3">
+                    {{ form.file.label(class="form-label") }}
+                    {{ form.file(class="form-control") }}
+                    {% if form.file.errors %}
+                        <div class="text-danger mt-2">
+                            {% for error in form.file.errors %}
+                                <small><i class="fas fa-exclamation-circle me-1"></i>{{ error }}</small><br>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    <small class="form-text text-muted">
+                        Supported formats: CSV (.csv), Excel (.xlsx, .xls)
+                    </small>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    {{ form.submit(class="btn btn-success") }}
+                    <a href="{{ url_for('admin.products') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="mt-4">
+        <div class="card">
+            <div class="card-header bg-light">
+                <h6 class="mb-0"><i class="fas fa-lightbulb me-2"></i>Tips for Successful Upload</h6>
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li>Make sure category IDs exist in your database before uploading</li>
+                    <li>Price should be a number (e.g., 50, 99.99)</li>
+                    <li>Stock should be a whole number (e.g., 100)</li>
+                    <li>Image URLs should start with http:// or https://</li>
+                    <li>Check the sample CSV for correct format</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

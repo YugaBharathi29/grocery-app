@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block title %}Shop - Grocery Store{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="fas fa-store me-2"></i>Shop Products</h2>
+        </div>
+        <div class="col-md-4">
+            <form method="GET" class="d-flex">
+                <input type="text" class="form-control me-2" name="search" 
+                       placeholder="Search products..." value="{{ search }}">
+                <button type="submit" class="btn btn-outline-success">
+                    <i class="fas fa-search"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-3 mb-4">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>Categories</h5>
+                </div>
+                <div class="list-group list-group-flush">
+                    <a href="{{ url_for('customer.shop') }}" 
+                       class="list-group-item list-group-item-action {% if not current_category %}active{% endif %}">
+                        <i class="fas fa-th-large me-2"></i>All Categories
+                    </a>
+                    {% for category in categories %}
+                    <a href="{{ url_for('customer.shop', category=category.id) }}" 
+                       class="list-group-item list-group-item-action {% if current_category == category.id %}active{% endif %}">
+                        <i class="fas fa-leaf me-2"></i>{{ category.name }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="col-lg-9">
+            {% if products.items %}
+            <div class="row">
+                {% for product in products.items %}
+                <div class="col-lg-4 col-md-6 mb-4">
+                    <div class="card h-100 shadow-sm product-card">
+                        {% if product.image %}
+                            {% if product.image.startswith('http') or product.image.startswith('data:image') %}
+                                <img src="{{ product.image }}" 
+                                     class="card-img-top" 
+                                     alt="{{ product.name }}" 
+                                     style="height: 200px; object-fit: cover;"
+                                     onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'card-img-top bg-light d-flex align-items-center justify-content-center\' style=\'height: 200px;\'><i class=\'fas fa-image text-muted fa-3x\'></i></div>';">
+                            {% else %}
+                                <img src="{{ url_for('static', filename='uploads/products/' + product.image) }}" 
+                                     class="card-img-top" 
+                                     alt="{{ product.name }}" 
+                                     style="height: 200px; object-fit: cover;"
+                                     onerror="this.onerror=null; this.parentElement.innerHTML='<div class=\'card-img-top bg-light d-flex align-items-center justify-content-center\' style=\'height: 200px;\'><i class=\'fas fa-image text-muted fa-3x\'></i></div>';">
+                            {% endif %}
+                        {% else %}
+                            <div class="card-img-top d-flex align-items-center justify-content-center bg-light" style="height: 200px;">
+                                <i class="fas fa-image text-muted" style="font-size: 3rem;"></i>
+                            </div>
+                        {% endif %}
+                        
+                        <div class="card-body">
+                            <h6 class="card-title">{{ product.name }}</h6>
+                            <p class="card-text text-muted small">{{ product.description[:50] }}...</p>
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-success fw-bold h5">₹{{ "%.2f"|format(product.price) }}</span>
+                                <small class="text-muted">Stock: {{ product.stock }}</small>
+                            </div>
+                            <span class="badge bg-secondary">{{ product.category.name }}</span>
+                        </div>
+                        
+                        <div class="card-footer bg-transparent">
+                            <div class="d-grid gap-2">
+                                <a href="{{ url_for('customer.product_detail', id=product.id) }}" 
+                                   class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-eye me-1"></i>View Details
+                                </a>
+                                {% if current_user.is_authenticated and product.stock > 0 %}
+                                <form method="POST" action="{{ url_for('customer.add_to_cart', product_id=product.id) }}">
+                                    <input type="hidden" name="quantity" value="1">
+                                    <button type="submit" class="btn btn-success btn-sm w-100">
+                                        <i class="fas fa-cart-plus me-1"></i>Add to Cart
+                                    </button>
+                                </form>
+                                {% else %}
+                                <button class="btn btn-secondary btn-sm w-100" disabled>
+                                    {% if not current_user.is_authenticated %}
+                                        <i class="fas fa-sign-in-alt me-1"></i>Login to Buy
+                                    {% else %}
+                                        <i class="fas fa-times me-1"></i>Out of Stock
+                                    {% endif %}
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Pagination -->
+            {% if products.pages > 1 %}
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if products.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('customer.shop', page=products.prev_num, category=current_category, search=search) }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                    
+                    {% for page_num in products.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != products.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('customer.shop', page=page_num, category=current_category, search=search) }}">
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+                    
+                    {% if products.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('customer.shop', page=products.next_num, category=current_category, search=search) }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+            {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-search text-muted" style="font-size: 5rem;"></i>
+                <h4 class="text-muted mt-3">No products found</h4>
+                <p class="text-muted">Try adjusting your search or browse different categories.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.product-card {
+    transition: transform 0.3s ease;
+}
+.product-card:hover {
+    transform: translateY(-5px);
+}
+</style>
+{% endblock %}

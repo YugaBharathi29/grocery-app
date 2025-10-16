@@ -1,0 +1,296 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - Grocery Store{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h2><i class="fas fa-credit-card me-2"></i>Checkout</h2>
+    
+    <div class="row">
+        <!-- Delivery Information Form -->
+        <div class="col-lg-7">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Delivery Information</h5>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.phone.label(class="form-label") }}
+                            {{ form.phone(class="form-control", placeholder="Enter your phone number") }}
+                            {% if form.phone.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.phone.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-4">
+                            {{ form.delivery_address.label(class="form-label") }}
+                            {{ form.delivery_address(class="form-control", rows="4", placeholder="Enter your complete delivery address") }}
+                            {% if form.delivery_address.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.delivery_address.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Payment Options Section -->
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">
+                                <i class="fas fa-wallet me-2"></i>Payment Method
+                            </label>
+                            
+                            <div class="payment-options">
+                                <!-- Cash on Delivery -->
+                                <div class="form-check payment-option-card">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="cod" value="cod" checked>
+                                    <label class="form-check-label w-100" for="cod">
+                                        <div class="d-flex align-items-center">
+                                            <div class="payment-icon me-3">
+                                                <i class="fas fa-money-bill-wave fa-2x text-success"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">Cash on Delivery</h6>
+                                                <small class="text-muted">Pay when you receive your order</small>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                <!-- UPI Payment -->
+                                <div class="form-check payment-option-card">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="upi" value="upi">
+                                    <label class="form-check-label w-100" for="upi">
+                                        <div class="d-flex align-items-center">
+                                            <div class="payment-icon me-3">
+                                                <i class="fas fa-mobile-alt fa-2x text-primary"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">UPI Payment</h6>
+                                                <small class="text-muted">Google Pay, PhonePe, Paytm</small>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                <!-- Credit/Debit Card -->
+                                <div class="form-check payment-option-card">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="card" value="card">
+                                    <label class="form-check-label w-100" for="card">
+                                        <div class="d-flex align-items-center">
+                                            <div class="payment-icon me-3">
+                                                <i class="fas fa-credit-card fa-2x text-info"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">Credit/Debit Card</h6>
+                                                <small class="text-muted">Visa, Mastercard, RuPay</small>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                                
+                                <!-- Net Banking -->
+                                <div class="form-check payment-option-card">
+                                    <input class="form-check-input" type="radio" name="payment_method" id="netbanking" value="netbanking">
+                                    <label class="form-check-label w-100" for="netbanking">
+                                        <div class="d-flex align-items-center">
+                                            <div class="payment-icon me-3">
+                                                <i class="fas fa-university fa-2x text-warning"></i>
+                                            </div>
+                                            <div>
+                                                <h6 class="mb-0">Net Banking</h6>
+                                                <small class="text-muted">All major banks supported</small>
+                                            </div>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Payment Details Section (shown based on selection) -->
+                        <div id="upiDetails" class="payment-details" style="display: none;">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>UPI Instructions:</strong> You will be redirected to complete the payment after placing the order.
+                            </div>
+                        </div>
+                        
+                        <div id="cardDetails" class="payment-details" style="display: none;">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Card Payment:</strong> You will be redirected to a secure payment gateway.
+                            </div>
+                        </div>
+                        
+                        <div id="netbankingDetails" class="payment-details" style="display: none;">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Net Banking:</strong> Select your bank on the next page to complete payment.
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-success btn-lg") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Order Summary -->
+        <div class="col-lg-5">
+            <div class="card shadow-sm sticky-top" style="top: 20px;">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Order Summary</h5>
+                </div>
+                <div class="card-body">
+                    {% for item, product in cart_items %}
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex align-items-center">
+                            {% if product.image %}
+                                {% if product.image.startswith('http') or product.image.startswith('data:image') %}
+                                    <img src="{{ product.image }}" class="rounded me-2" style="width: 50px; height: 50px; object-fit: cover;" alt="{{ product.name }}">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='uploads/products/' + product.image) }}" class="rounded me-2" style="width: 50px; height: 50px; object-fit: cover;" alt="{{ product.name }}">
+                                {% endif %}
+                            {% else %}
+                                <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                    <i class="fas fa-image text-muted"></i>
+                                </div>
+                            {% endif %}
+                            <div>
+                                <strong>{{ product.name }}</strong>
+                                <br>
+                                <small class="text-muted">× {{ item.quantity }}</small>
+                            </div>
+                        </div>
+                        <span class="text-success fw-bold">₹{{ "%.2f"|format(item.quantity * product.price) }}</span>
+                    </div>
+                    {% endfor %}
+                    
+                    <hr>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Subtotal:</span>
+                        <span>₹{{ "%.2f"|format(total) }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Delivery Charges:</span>
+                        <span class="text-success">FREE</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>Total:</strong>
+                        <strong class="text-success h4">₹{{ "%.2f"|format(total) }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.payment-option-card {
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.payment-option-card:hover {
+    border-color: #28a745;
+    background-color: #f8f9fa;
+}
+
+.payment-option-card input[type="radio"]:checked + label {
+    border-color: #28a745;
+}
+
+.payment-option-card input[type="radio"]:checked ~ .payment-option-card {
+    background-color: #e8f5e9;
+    border-color: #28a745;
+}
+
+.form-check-input:checked {
+    background-color: #28a745;
+    border-color: #28a745;
+}
+
+.payment-icon {
+    width: 50px;
+    text-align: center;
+}
+
+.payment-details {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.sticky-top {
+    position: sticky;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const paymentOptions = document.querySelectorAll('input[name="payment_method"]');
+    const upiDetails = document.getElementById('upiDetails');
+    const cardDetails = document.getElementById('cardDetails');
+    const netbankingDetails = document.getElementById('netbankingDetails');
+    
+    // Hide all payment details initially
+    function hideAllDetails() {
+        upiDetails.style.display = 'none';
+        cardDetails.style.display = 'none';
+        netbankingDetails.style.display = 'none';
+    }
+    
+    // Show relevant details based on selection
+    paymentOptions.forEach(option => {
+        option.addEventListener('change', function() {
+            hideAllDetails();
+            
+            if (this.value === 'upi') {
+                upiDetails.style.display = 'block';
+            } else if (this.value === 'card') {
+                cardDetails.style.display = 'block';
+            } else if (this.value === 'netbanking') {
+                netbankingDetails.style.display = 'block';
+            }
+        });
+    });
+    
+    // Add highlight effect to selected option
+    paymentOptions.forEach(option => {
+        option.addEventListener('change', function() {
+            document.querySelectorAll('.payment-option-card').forEach(card => {
+                card.style.backgroundColor = '';
+                card.style.borderColor = '#e0e0e0';
+            });
+            
+            this.closest('.payment-option-card').style.backgroundColor = '#e8f5e9';
+            this.closest('.payment-option-card').style.borderColor = '#28a745';
+        });
+    });
+});
+</script>
+{% endblock %}

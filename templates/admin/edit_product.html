@@ -1,0 +1,192 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Product - Admin{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-edit me-2"></i>Edit Product</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                {{ form.name.label(class="form-label") }}
+                                {{ form.name(class="form-control", placeholder="e.g., Fresh Apple") }}
+                                {% if form.name.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.name.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-4 mb-3">
+                                {{ form.category_id.label(class="form-label") }}
+                                {{ form.category_id(class="form-select") }}
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {{ form.description(class="form-control", rows="3", placeholder="Product description") }}
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                {{ form.price.label(class="form-label") }}
+                                <div class="input-group">
+                                    <span class="input-group-text">₹</span>
+                                    {{ form.price(class="form-control", placeholder="0.00") }}
+                                </div>
+                                {% if form.price.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.price.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                {{ form.stock.label(class="form-label") }}
+                                {{ form.stock(class="form-control", placeholder="0") }}
+                                {% if form.stock.errors %}
+                                    <div class="text-danger small">
+                                        {% for error in form.stock.errors %}
+                                            <div>{{ error }}</div>
+                                        {% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <!-- Current Image Preview -->
+                        {% if product.image %}
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Current Image:</label>
+                            <div class="text-center p-3 bg-light rounded">
+                                {% if product.image.startswith('http') or product.image.startswith('data:image') %}
+                                    <img src="{{ product.image }}" 
+                                         class="img-thumbnail" 
+                                         style="max-width: 300px; max-height: 200px;"
+                                         alt="Current product image">
+                                {% else %}
+                                    <img src="{{ url_for('static', filename='uploads/products/' + product.image) }}" 
+                                         class="img-thumbnail" 
+                                         style="max-width: 300px; max-height: 200px;"
+                                         alt="Current product image">
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        <!-- Image Upload Section -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Update Product Image</label>
+                            
+                            <!-- Image URL Input -->
+                            <div class="input-group mb-2">
+                                <span class="input-group-text"><i class="fas fa-link"></i></span>
+                                {{ form.image_url(class="form-control", placeholder="https://example.com/product.jpg") }}
+                            </div>
+                            <small class="text-muted d-block mb-3">
+                                <i class="fas fa-info-circle me-1"></i>Enter an image URL to update the image
+                            </small>
+                            
+                            <!-- Divider -->
+                            <div class="text-center my-3">
+                                <span class="badge bg-secondary">OR</span>
+                            </div>
+                            
+                            <!-- File Upload -->
+                            <div class="mb-2">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-upload"></i></span>
+                                    {{ form.image(class="form-control") }}
+                                </div>
+                            </div>
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>Upload a new image from your computer
+                            </small>
+                            
+                            <div class="alert alert-info mt-3 small" role="alert">
+                                <i class="fas fa-lightbulb me-2"></i>
+                                <strong>Note:</strong> Leave both fields empty to keep the current image. If you provide a new URL or upload a file, it will replace the current image.
+                            </div>
+                        </div>
+                        
+                        <!-- New Image Preview -->
+                        <div class="mb-3" id="newImagePreview" style="display: none;">
+                            <label class="form-label fw-bold">New Image Preview:</label>
+                            <div class="text-center p-3 bg-light rounded">
+                                <img id="previewImg" src="" class="img-thumbnail" style="max-width: 300px; max-height: 200px;">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                {{ form.is_active(class="form-check-input") }}
+                                {{ form.is_active.label(class="form-check-label") }}
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('admin.products') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Image Preview
+document.addEventListener('DOMContentLoaded', function() {
+    const imageUrlInput = document.querySelector('input[name="image_url"]');
+    const fileInput = document.querySelector('input[name="image"]');
+    const previewDiv = document.getElementById('newImagePreview');
+    const previewImg = document.getElementById('previewImg');
+    
+    // Preview from URL
+    if (imageUrlInput) {
+        imageUrlInput.addEventListener('input', function() {
+            if (this.value.trim()) {
+                previewImg.src = this.value;
+                previewDiv.style.display = 'block';
+                previewImg.onerror = function() {
+                    previewDiv.style.display = 'none';
+                };
+            } else {
+                previewDiv.style.display = 'none';
+            }
+        });
+    }
+    
+    // Preview from file upload
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.src = e.target.result;
+                    previewDiv.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print Order #{{ order.id }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        @media print {
+            .no-print {
+                display: none;
+            }
+            body {
+                padding: 20px;
+            }
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            padding: 30px;
+            background-color: #f8f9fa;
+        }
+        
+        .invoice-box {
+            background: white;
+            padding: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
+        }
+        
+        .invoice-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #28a745;
+        }
+        
+        .store-name {
+            color: #28a745;
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .store-tagline {
+            color: #6c757d;
+            font-size: 0.9rem;
+        }
+        
+        .section-title {
+            background-color: #f8f9fa;
+            padding: 10px;
+            margin: 20px 0 10px 0;
+            font-weight: bold;
+            border-left: 4px solid #28a745;
+        }
+        
+        .info-row {
+            margin-bottom: 8px;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            display: inline-block;
+            width: 150px;
+        }
+        
+        .items-table {
+            margin-top: 20px;
+        }
+        
+        .items-table th {
+            background-color: #28a745;
+            color: white;
+            padding: 12px;
+        }
+        
+        .items-table td {
+            padding: 10px;
+        }
+        
+        .total-section {
+            text-align: right;
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        
+        .total-amount {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #28a745;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #dee2e6;
+            color: #6c757d;
+        }
+        
+        .payment-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .payment-cod {
+            background-color: #28a745;
+            color: white;
+        }
+        
+        .payment-upi {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .payment-card {
+            background-color: #17a2b8;
+            color: white;
+        }
+        
+        .payment-netbanking {
+            background-color: #ffc107;
+            color: #000;
+        }
+        
+        .payment-other {
+            background-color: #6c757d;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Print and Close Buttons -->
+    <div class="text-center mb-4 no-print">
+        <button onclick="window.print()" class="btn btn-success btn-lg me-2">
+            <i class="fas fa-print"></i> Print Order
+        </button>
+        <button onclick="window.close()" class="btn btn-secondary btn-lg">
+            <i class="fas fa-times"></i> Close
+        </button>
+    </div>
+    
+    <!-- Invoice Box -->
+    <div class="invoice-box">
+        <!-- Header -->
+        <div class="invoice-header">
+            <div class="store-name">🛒 Grocery Store</div>
+            <div class="store-tagline">Fresh Groceries Delivered to Your Doorstep</div>
+        </div>
+        
+        <!-- Order Title -->
+        <h3 class="mb-3">Order Invoice #{{ order.id }}</h3>
+        
+        <!-- Order Info -->
+        <div class="row mb-3">
+            <div class="col-6">
+                <div class="info-row">
+                    <span class="info-label">Order Date:</span>
+                    {{ order.created_at | format_datetime }}
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Status:</span>
+                    <strong>{{ order.status }}</strong>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Customer Details -->
+        <div class="section-title">Customer Details</div>
+        <div class="info-row">
+            <span class="info-label">Name:</span>
+            {{ order.user.username }}
+        </div>
+        <div class="info-row">
+            <span class="info-label">Email:</span>
+            {{ order.user.email }}
+        </div>
+        <div class="info-row">
+            <span class="info-label">Phone:</span>
+            {{ order.phone }}
+        </div>
+        <div class="info-row">
+            <span class="info-label">Delivery Address:</span>
+            {{ order.delivery_address }}
+        </div>
+        
+        <!-- Payment Method -->
+        <div class="info-row">
+            <span class="info-label">Payment Method:</span>
+            {% if order.payment_method == 'cod' %}
+                <span class="payment-badge payment-cod">💵 Cash on Delivery</span>
+            {% elif order.payment_method == 'upi' %}
+                <span class="payment-badge payment-upi">📱 UPI Payment</span>
+            {% elif order.payment_method == 'card' %}
+                <span class="payment-badge payment-card">💳 Card Payment</span>
+            {% elif order.payment_method == 'netbanking' %}
+                <span class="payment-badge payment-netbanking">🏦 Net Banking</span>
+            {% else %}
+                <span class="payment-badge payment-other">❓ Not specified</span>
+            {% endif %}
+        </div>
+        
+        <!-- Order Items -->
+        <div class="section-title">Order Items</div>
+        <table class="table table-bordered items-table">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order_item, product in order_items %}
+                <tr>
+                    <td>{{ product.name }}</td>
+                    <td>₹{{ "%.2f"|format(order_item.price) }}</td>
+                    <td>{{ order_item.quantity }}</td>
+                    <td>₹{{ "%.2f"|format(order_item.quantity * order_item.price) }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <!-- Total Amount -->
+        <div class="total-section">
+            <div class="total-amount">
+                Total Amount: ₹{{ "%.2f"|format(order.total_amount) }}
+            </div>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p><strong>Thank you for your business!</strong></p>
+            <p>For queries, contact: info@grocerystore.com | +91 1234567890</p>
+        </div>
+    </div>
+    
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+</body>
+</html>

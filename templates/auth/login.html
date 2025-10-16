@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Grocery Store{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-4">
+            <div class="card shadow mt-5">
+                <div class="card-header bg-success text-white text-center">
+                    <h4><i class="fas fa-sign-in-alt me-2"></i>Login</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+
+                        <div class="mb-3">
+                            {{ form.username.label(class="form-label") }}
+                            {{ form.username(class="form-control") }}
+                            {% if form.username.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.username.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ form.password.label(class="form-label") }}
+                            {{ form.password(class="form-control") }}
+                            {% if form.password.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.password.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-grid">
+                            {{ form.submit(class="btn btn-success") }}
+                        </div>
+                    </form>
+                </div>
+                <div class="card-footer text-center">
+                    <p class="mb-0">Don't have an account? 
+                        <a href="{{ url_for('auth.register') }}" class="text-success">Register here</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Demo credentials -->
+            <div class="card mt-3 border-info">
+                <div class="card-header bg-info text-white text-center">
+                    <small><i class="fas fa-info-circle me-1"></i>Demo Credentials</small>
+                </div>
+                <div class="card-body py-2">
+                    <small>
+                        <strong>Admin:</strong> admin / admin123<br>
+                        <strong>User:</strong> testuser / user123
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

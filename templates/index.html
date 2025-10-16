@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Grocery Store{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section py-5" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-3 fw-bold text-white mb-3">Welcome to GroceryStore</h1>
+                <p class="lead text-white mb-4">Fresh groceries delivered to your doorstep. Quality products at the best prices.</p>
+                <a href="{{ url_for('customer.shop') }}" class="btn btn-light btn-lg">
+                    <i class="fas fa-shopping-bag me-2"></i>Shop Now
+                </a>
+            </div>
+            <div class="col-lg-6">
+                <div class="hero-image-container">
+                    <img src="https://images.unsplash.com/photo-1542838132-92c53300491e?w=800&h=600&fit=crop" 
+                         class="img-fluid rounded shadow-lg" 
+                         alt="Fresh Groceries"
+                         onerror="this.src='https://via.placeholder.com/800x600/667eea/ffffff?text=Fresh+Groceries'"
+                         style="max-height: 500px; width: 100%; object-fit: cover; border-radius: 15px;">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Shop by Category Section -->
+<section class="categories-section py-5 bg-light">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">
+                <i class="fas fa-tags text-primary me-2"></i>Shop by Category
+            </h2>
+            <p class="text-muted">Browse our wide selection of products</p>
+        </div>
+        
+        <div class="row g-4">
+            {% for category in categories %}
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="card category-card h-100 border-0 shadow-sm">
+                    {% if category.image %}
+                        {% if category.image.startswith('http') or category.image.startswith('data:image') %}
+                            <!-- URL or data URI -->
+                            <img src="{{ category.image }}" 
+                                 class="card-img-top" 
+                                 alt="{{ category.name }}" 
+                                 style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <!-- Local file -->
+                            <img src="{{ url_for('static', filename='uploads/categories/' + category.image) }}" 
+                                 class="card-img-top" 
+                                 alt="{{ category.name }}" 
+                                 style="height: 200px; object-fit: cover;">
+                        {% endif %}
+                    {% else %}
+                        <!-- No image - placeholder with icon -->
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                             style="height: 200px;">
+                            <div class="text-center">
+                                <i class="fas fa-folder fa-3x text-muted mb-2"></i>
+                                <p class="text-muted small mb-0">No Image Available</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="card-body text-center">
+                        <h5 class="card-title fw-bold">{{ category.name }}</h5>
+                        <p class="card-text text-muted small">{{ category.description }}</p>
+                        <a href="{{ url_for('customer.shop', category=category.id) }}" 
+                           class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-arrow-right me-1"></i>Explore
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<!-- Featured Products -->
+<section class="featured-section py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="display-5 fw-bold">Featured Products</h2>
+            <p class="text-muted">Handpicked selection just for you</p>
+        </div>
+        
+        <div class="row g-4">
+            {% for product in featured_products %}
+            <div class="col-lg-3 col-md-4 col-sm-6">
+                <div class="card product-card h-100 border-0 shadow-sm">
+                    {% if product.image %}
+                        {% if product.image.startswith('http') or product.image.startswith('data:image') %}
+                            <!-- URL or data URI -->
+                            <img src="{{ product.image }}" 
+                                 class="card-img-top" 
+                                 alt="{{ product.name }}" 
+                                 style="height: 220px; object-fit: cover;">
+                        {% else %}
+                            <!-- Local file -->
+                            <img src="{{ url_for('static', filename='uploads/products/' + product.image) }}" 
+                                 class="card-img-top" 
+                                 alt="{{ product.name }}" 
+                                 style="height: 220px; object-fit: cover;">
+                        {% endif %}
+                    {% else %}
+                        <!-- No image - placeholder with icon -->
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                             style="height: 220px;">
+                            <div class="text-center">
+                                <i class="fas fa-image fa-3x text-muted mb-2"></i>
+                                <p class="text-muted small mb-0">No Image Available</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <h6 class="card-title fw-bold">{{ product.name }}</h6>
+                        <p class="card-text text-muted small">
+                            {{ product.description[:60] }}{% if product.description|length > 60 %}...{% endif %}
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <span class="text-success fw-bold h5 mb-0">₹{{ "%.2f"|format(product.price) }}</span>
+                            <small class="text-muted">Stock: {{ product.stock }}</small>
+                        </div>
+                        <span class="badge bg-secondary">{{ product.category.name }}</span>
+                    </div>
+                    
+                    <div class="card-footer bg-white border-0">
+                        <a href="{{ url_for('customer.product_detail', id=product.id) }}" 
+                           class="btn btn-primary btn-sm w-100">
+                            <i class="fas fa-shopping-cart me-1"></i>View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <div class="text-center mt-5">
+            <a href="{{ url_for('customer.shop') }}" class="btn btn-lg btn-primary">
+                <i class="fas fa-store me-2"></i>View All Products
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features-section py-5 bg-light">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-4 text-center">
+                <div class="feature-icon mb-3">
+                    <i class="fas fa-truck fa-3x text-primary"></i>
+                </div>
+                <h4 class="fw-bold">Free Delivery</h4>
+                <p class="text-muted">Free delivery on orders above ₹500</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="feature-icon mb-3">
+                    <i class="fas fa-leaf fa-3x text-success"></i>
+                </div>
+                <h4 class="fw-bold">Fresh Products</h4>
+                <p class="text-muted">100% fresh and organic products</p>
+            </div>
+            <div class="col-md-4 text-center">
+                <div class="feature-icon mb-3">
+                    <i class="fas fa-headset fa-3x text-info"></i>
+                </div>
+                <h4 class="fw-bold">24/7 Support</h4>
+                <p class="text-muted">Round the clock customer support</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+/* Hero Section */
+.hero-section {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+}
+
+.hero-image-container img {
+    animation: fadeInRight 1s ease-in-out;
+}
+
+@keyframes fadeInRight {
+    from {
+        opacity: 0;
+        transform: translateX(50px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Card Animations */
+.product-card,
+.category-card {
+    transition: all 0.3s ease;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.product-card:hover,
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.15) !important;
+}
+
+/* Image Styles */
+.card-img-top {
+    transition: transform 0.3s ease;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+}
+
+.product-card:hover .card-img-top,
+.category-card:hover .card-img-top {
+    transform: scale(1.05);
+}
+
+/* No Image Placeholder */
+.no-image-placeholder {
+    background-color: #f8f9fa;
+    border: 2px dashed #dee2e6;
+}
+
+/* Badge Styles */
+.badge {
+    font-weight: 500;
+    padding: 0.4em 0.6em;
+}
+
+/* Button Styles */
+.btn {
+    border-radius: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Feature Icons */
+.feature-icon i {
+    transition: transform 0.3s ease;
+}
+
+.feature-icon:hover i {
+    transform: scale(1.1);
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+    .hero-section {
+        min-height: 50vh;
+        text-align: center;
+    }
+    
+    .hero-section h1 {
+        font-size: 2rem;
+    }
+    
+    .hero-image-container {
+        margin-top: 2rem;
+    }
+}
+
+/* Gradient Background */
+.bg-gradient {
+    background: linear-gradient(45deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Card Border Radius */
+.card {
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* Ensure categories wrap properly */
+.categories-section .row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+/* Fix for col spacing */
+.categories-section .col-lg-3 {
+    flex: 0 0 auto;
+    width: 25%;
+}
+
+@media (max-width: 992px) {
+    .categories-section .col-lg-3 {
+        width: 33.333%;
+    }
+}
+
+@media (max-width: 768px) {
+    .categories-section .col-lg-3 {
+        width: 50%;
+    }
+}
+</style>
+{% endblock %}

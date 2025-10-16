@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Subscription - {{ subscription.name }}{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-edit me-2"></i>Edit Subscription</h2>
+        <a href="{{ url_for('customer.subscriptions') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Back to Subscriptions
+        </a>
+    </div>
+    
+    <!-- Subscription Info Card -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-success text-white">
+            <h5 class="mb-0">{{ subscription.name }}</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <p class="mb-2"><strong>Frequency:</strong> {{ subscription.frequency|title }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-2"><strong>Delivery Time:</strong> {{ subscription.delivery_time|title }}</p>
+                </div>
+                <div class="col-md-4">
+                    <p class="mb-2"><strong>Next Delivery:</strong> {{ subscription.next_delivery.strftime('%b %d, %Y') }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Add Products Form -->
+        <div class="col-md-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0"><i class="fas fa-plus-circle me-2"></i>Add Products</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.product_id.label(class="form-label fw-bold") }}
+                            {{ form.product_id(class="form-select") }}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.quantity.label(class="form-label fw-bold") }}
+                            {{ form.quantity(class="form-control", min="1", value="1") }}
+                        </div>
+                        
+                        {{ form.submit(class="btn btn-primary w-100") }}
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Current Products List -->
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-shopping-basket me-2"></i>Subscription Products ({{ items|length }})</h6>
+                </div>
+                <div class="card-body">
+                    {% if items %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Price</th>
+                                    <th>Quantity</th>
+                                    <th>Subtotal</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item, product in items %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if product.image %}
+                                                {% if product.image.startswith('http') %}
+                                                    <img src="{{ product.image }}" alt="{{ product.name }}" 
+                                                         style="width: 40px; height: 40px; object-fit: cover;" 
+                                                         class="rounded me-2">
+                                                {% else %}
+                                                    <img src="{{ url_for('static', filename='uploads/products/' + product.image) }}" 
+                                                         alt="{{ product.name }}" 
+                                                         style="width: 40px; height: 40px; object-fit: cover;" 
+                                                         class="rounded me-2">
+                                                {% endif %}
+                                            {% else %}
+                                                <div class="bg-light rounded me-2 d-flex align-items-center justify-content-center" 
+                                                     style="width: 40px; height: 40px;">
+                                                    <i class="fas fa-image text-muted"></i>
+                                                </div>
+                                            {% endif %}
+                                            <span>{{ product.name }}</span>
+                                        </div>
+                                    </td>
+                                    <td>₹{{ "%.2f"|format(product.price) }}</td>
+                                    <td>
+                                        <form method="POST" action="{{ url_for('customer.update_subscription_item', id=item.id) }}" class="d-inline">
+                                            <input type="number" name="quantity" value="{{ item.quantity }}" 
+                                                   min="1" class="form-control form-control-sm" 
+                                                   style="width: 70px;" onchange="this.form.submit()">
+                                        </form>
+                                    </td>
+                                    <td class="fw-bold text-success">₹{{ "%.2f"|format(item.quantity * product.price) }}</td>
+                                    <td>
+                                        <a href="{{ url_for('customer.remove_subscription_item', id=item.id) }}" 
+                                           class="btn btn-sm btn-danger" 
+                                           onclick="return confirm('Remove this product?')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-light">
+                                    <td colspan="3" class="text-end fw-bold">Total per Delivery:</td>
+                                    <td colspan="2" class="fw-bold text-success fs-5">
+                                        ₹{{ "%.2f"|format(subscription.get_total_amount()) }}
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-box-open text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-3">No products added yet. Add products using the form on the left.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

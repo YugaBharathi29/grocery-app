@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+
+{% block title %}Add Category - Admin{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="fas fa-plus me-2"></i>Add New Category</h4>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        
+                        <div class="mb-3">
+                            {{ form.name.label(class="form-label") }}
+                            {{ form.name(class="form-control", placeholder="e.g., Fruits & Vegetables") }}
+                            {% if form.name.errors %}
+                                <div class="text-danger small">
+                                    {% for error in form.name.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="mb-3">
+                            {{ form.description.label(class="form-label") }}
+                            {{ form.description(class="form-control", rows="3", placeholder="Brief description of the category") }}
+                        </div>
+                        
+                        <!-- Image Upload Section -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Category Image</label>
+                            
+                            <!-- Image URL Input -->
+                            <div class="input-group mb-2">
+                                <span class="input-group-text"><i class="fas fa-link"></i></span>
+                                {{ form.image_url(class="form-control", placeholder="https://example.com/image.jpg") }}
+                            </div>
+                            <small class="text-muted d-block mb-3">
+                                <i class="fas fa-info-circle me-1"></i>Enter an image URL from the internet
+                            </small>
+                            
+                            <!-- Divider -->
+                            <div class="text-center my-3">
+                                <span class="badge bg-secondary">OR</span>
+                            </div>
+                            
+                            <!-- File Upload -->
+                            <div class="mb-2">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-upload"></i></span>
+                                    {{ form.image(class="form-control") }}
+                                </div>
+                            </div>
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>Upload from your computer (PNG, JPG, JPEG, GIF)
+                            </small>
+                            
+                            {% if form.image.errors or form.image_url.errors %}
+                                <div class="text-danger small mt-2">
+                                    {% for error in form.image.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                    {% for error in form.image_url.errors %}
+                                        <div>{{ error }}</div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <!-- Image Preview -->
+                        <div class="mb-3" id="imagePreview" style="display: none;">
+                            <label class="form-label">Preview:</label>
+                            <div>
+                                <img id="previewImg" src="" class="img-thumbnail" style="max-width: 300px; max-height: 200px;">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                {{ form.is_active(class="form-check-input") }}
+                                {{ form.is_active.label(class="form-check-label") }}
+                            </div>
+                            <small class="text-muted">
+                                <i class="fas fa-info-circle me-1"></i>Only active categories are visible to customers
+                            </small>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('admin.categories') }}" class="btn btn-secondary">
+                                <i class="fas fa-times me-1"></i>Cancel
+                            </a>
+                            {{ form.submit(class="btn btn-success") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Help Card -->
+            <div class="card mt-3 border-info">
+                <div class="card-header bg-info text-white">
+                    <i class="fas fa-lightbulb me-2"></i>Image Tips
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0 small">
+                        <li><strong>Image URL:</strong> Right-click on any image online → Copy image address → Paste here</li>
+                        <li><strong>Free Images:</strong> Use sites like <a href="https://unsplash.com" target="_blank">Unsplash</a>, <a href="https://pexels.com" target="_blank">Pexels</a></li>
+                        <li><strong>File Upload:</strong> Select an image from your computer</li>
+                        <li><strong>Priority:</strong> If both URL and file are provided, URL will be used</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Image URL Preview
+document.addEventListener('DOMContentLoaded', function() {
+    const imageUrlInput = document.querySelector('input[name="image_url"]');
+    const fileInput = document.querySelector('input[name="image"]');
+    const previewDiv = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    
+    // Preview from URL
+    imageUrlInput.addEventListener('input', function() {
+        if (this.value.trim()) {
+            previewImg.src = this.value;
+            previewDiv.style.display = 'block';
+            previewImg.onerror = function() {
+                previewDiv.style.display = 'none';
+            };
+        } else {
+            previewDiv.style.display = 'none';
+        }
+    });
+    
+    // Preview from file upload
+    fileInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file && file.type.startsWith('image/')) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImg.src = e.target.result;
+                previewDiv.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+    });
+});
+</script>
+{% endblock %}

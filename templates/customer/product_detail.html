@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}{{ product.name }} - Grocery Store{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ url_for('customer.shop') }}">Shop</a></li>
+            <li class="breadcrumb-item active">{{ product.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            {% if product.image %}
+                {% if product.image.startswith('http') or product.image.startswith('data:image') %}
+                    <!-- URL or data URI -->
+                    <img src="{{ product.image }}" 
+                         class="img-fluid rounded shadow product-main-image" 
+                         alt="{{ product.name }}">
+                {% else %}
+                    <!-- Local file -->
+                    <img src="{{ url_for('static', filename='uploads/products/' + product.image) }}" 
+                         class="img-fluid rounded shadow product-main-image" 
+                         alt="{{ product.name }}">
+                {% endif %}
+            {% else %}
+                <!-- No image - placeholder -->
+                <div class="bg-light rounded shadow d-flex align-items-center justify-content-center" style="height: 400px;">
+                    <div class="text-center">
+                        <i class="fas fa-image text-muted mb-3" style="font-size: 5rem;"></i>
+                        <p class="text-muted h5">No Image Available</p>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-md-6">
+            <h2 class="mb-3">{{ product.name }}</h2>
+            
+            <div class="mb-3">
+                <span class="badge bg-secondary fs-6">{{ product.category.name }}</span>
+            </div>
+            
+            <p class="text-muted mb-4">{{ product.description }}</p>
+            
+            <div class="mb-4">
+                <span class="h3 text-success fw-bold">₹{{ "%.2f"|format(product.price) }}</span>
+            </div>
+            
+            <div class="mb-4">
+                <strong>Stock: </strong>
+                {% if product.stock > 0 %}
+                    <span class="text-success">
+                        <i class="fas fa-check-circle me-1"></i>{{ product.stock }} available
+                    </span>
+                {% else %}
+                    <span class="text-danger">
+                        <i class="fas fa-times-circle me-1"></i>Out of stock
+                    </span>
+                {% endif %}
+            </div>
+            
+            {% if current_user.is_authenticated and product.stock > 0 %}
+            <form method="POST" action="{{ url_for('customer.add_to_cart', product_id=product.id) }}">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label fw-bold">Quantity:</label>
+                        <input type="number" name="quantity" class="form-control form-control-lg" 
+                               value="1" min="1" max="{{ product.stock }}" required>
+                    </div>
+                    <div class="col-md-8 d-flex align-items-end">
+                        <button type="submit" class="btn btn-success btn-lg w-100">
+                            <i class="fas fa-cart-plus me-2"></i>Add to Cart
+                        </button>
+                    </div>
+                </div>
+            </form>
+            {% else %}
+            <div class="mb-4">
+                <button class="btn btn-secondary btn-lg w-100" disabled>
+                    {% if not current_user.is_authenticated %}
+                        <i class="fas fa-sign-in-alt me-2"></i>Login to Purchase
+                    {% else %}
+                        <i class="fas fa-times me-2"></i>Out of Stock
+                    {% endif %}
+                </button>
+            </div>
+            {% endif %}
+            
+            <div class="card border-info">
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <i class="fas fa-info-circle text-info me-2"></i>Product Information
+                    </h6>
+                    <ul class="list-unstyled mb-0">
+                        <li><i class="fas fa-tag text-muted me-2"></i><strong>Category:</strong> {{ product.category.name }}</li>
+                        <li><i class="fas fa-rupee-sign text-muted me-2"></i><strong>Price:</strong> ₹{{ "%.2f"|format(product.price) }}</li>
+                        <li><i class="fas fa-box text-muted me-2"></i><strong>Stock:</strong> {{ product.stock }} units</li>
+                        <li><i class="fas fa-calendar text-muted me-2"></i><strong>Added:</strong> {{ product.created_at.strftime('%B %d, %Y') }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Related Products -->
+    {% if related_products %}
+    <div class="mt-5">
+        <h4 class="mb-4">
+            <i class="fas fa-shopping-basket text-primary me-2"></i>Related Products
+        </h4>
+        <div class="row g-4">
+            {% for related in related_products %}
+            <div class="col-lg-3 col-md-6">
+                <div class="card h-100 shadow-sm product-card">
+                    {% if related.image %}
+                        {% if related.image.startswith('http') or related.image.startswith('data:image') %}
+                            <!-- URL image -->
+                            <img src="{{ related.image }}" 
+                                 class="card-img-top" 
+                                 alt="{{ related.name }}" 
+                                 style="height: 200px; object-fit: cover;">
+                        {% else %}
+                            <!-- Local file -->
+                            <img src="{{ url_for('static', filename='uploads/products/' + related.image) }}" 
+                                 class="card-img-top" 
+                                 alt="{{ related.name }}" 
+                                 style="height: 200px; object-fit: cover;">
+                        {% endif %}
+                    {% else %}
+                        <!-- No image placeholder -->
+                        <div class="card-img-top bg-light d-flex align-items-center justify-content-center" 
+                             style="height: 200px;">
+                            <div class="text-center">
+                                <i class="fas fa-image text-muted fa-2x mb-2"></i>
+                                <p class="text-muted small mb-0">No Image</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="card-body">
+                        <h6 class="card-title">{{ related.name }}</h6>
+                        <p class="text-success fw-bold mb-2">₹{{ "%.2f"|format(related.price) }}</p>
+                        <a href="{{ url_for('customer.product_detail', id=related.id) }}" 
+                           class="btn btn-outline-success btn-sm w-100">
+                            <i class="fas fa-eye me-1"></i>View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.product-main-image {
+    max-height: 500px;
+    width: 100%;
+    object-fit: contain;
+    background-color: #f8f9fa;
+    padding: 20px;
+}
+
+.product-card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.1) !important;
+}
+
+.breadcrumb {
+    background-color: transparent;
+    padding: 0;
+}
+
+.breadcrumb-item a {
+    color: #28a745;
+    text-decoration: none;
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline;
+}
+
+.badge {
+    padding: 0.5em 1em;
+    border-radius: 6px;
+}
+
+.btn-lg {
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+}
+
+.card {
+    border-radius: 10px;
+}
+
+.form-control-lg {
+    font-size: 1.1rem;
+}
+
+/* No Image Placeholder Styling */
+.bg-light {
+    background-color: #f8f9fa !important;
+    border: 2px dashed #dee2e6;
+}
+
+@media (max-width: 768px) {
+    .product-main-image {
+        max-height: 300px;
+    }
+}
+</style>
+{% endblock %}

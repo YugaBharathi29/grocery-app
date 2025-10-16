@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - Admin{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2><i class="fas fa-users me-2"></i>Manage Users</h2>
+        <div>
+            <span class="badge bg-info fs-6">Total Users: {{ users|length }}</span>
+        </div>
+    </div>
+    
+    {% if users %}
+    <div class="card shadow">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Address</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Joined</th>
+                            <th>Orders</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr class="{% if not user.is_active %}table-secondary{% endif %}">
+                            <td><strong>#{{ user.id }}</strong></td>
+                            <td>
+                                <i class="fas fa-user-circle me-1"></i>
+                                <strong>{{ user.username }}</strong>
+                            </td>
+                            <td>
+                                <i class="fas fa-envelope me-1 text-muted"></i>
+                                {{ user.email }}
+                            </td>
+                            <td>
+                                {% if user.phone %}
+                                    <i class="fas fa-phone me-1 text-muted"></i>
+                                    {{ user.phone }}
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user.address %}
+                                    <small class="text-muted">{{ user.address[:30] }}{% if user.address|length > 30 %}...{% endif %}</small>
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user.is_admin %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-shield-alt me-1"></i>Admin
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-primary">
+                                        <i class="fas fa-user me-1"></i>Customer
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user.is_active %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>Active
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">
+                                        <i class="fas fa-ban me-1"></i>Inactive
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small>{{ user.created_at.strftime('%b %d, %Y') }}</small>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-info">
+                                    <i class="fas fa-shopping-cart me-1"></i>{{ user.orders.count() }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    {% if not user.is_admin %}
+                                    <a href="{{ url_for('admin.toggle_user', id=user.id) }}" 
+                                       class="btn btn-sm btn-{% if user.is_active %}warning{% else %}success{% endif %}"
+                                       onclick="return confirm('Are you sure you want to {% if user.is_active %}deactivate{% else %}activate{% endif %} this user account?')"
+                                       data-bs-toggle="tooltip" 
+                                       title="{% if user.is_active %}Deactivate{% else %}Activate{% endif %} Account">
+                                        <i class="fas fa-{% if user.is_active %}toggle-off{% else %}toggle-on{% endif %} me-1"></i>
+                                        {% if user.is_active %}Deactivate{% else %}Activate{% endif %}
+                                    </a>
+                                    {% else %}
+                                    <button class="btn btn-sm btn-secondary" disabled>
+                                        <i class="fas fa-lock me-1"></i>Admin Protected
+                                    </button>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- User Statistics -->
+    <div class="row mt-4 g-3">
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <div class="mb-2">
+                        <i class="fas fa-user-check fa-2x text-primary"></i>
+                    </div>
+                    <h3 class="text-primary mb-0">{{ users|selectattr('is_active')|list|length }}</h3>
+                    <p class="text-muted mb-0 small">Active Users</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <div class="mb-2">
+                        <i class="fas fa-user-slash fa-2x text-secondary"></i>
+                    </div>
+                    <h3 class="text-secondary mb-0">{{ users|rejectattr('is_active')|list|length }}</h3>
+                    <p class="text-muted mb-0 small">Inactive Users</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <div class="mb-2">
+                        <i class="fas fa-user-shield fa-2x text-danger"></i>
+                    </div>
+                    <h3 class="text-danger mb-0">{{ users|selectattr('is_admin')|list|length }}</h3>
+                    <p class="text-muted mb-0 small">Administrators</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-center shadow-sm">
+                <div class="card-body">
+                    <div class="mb-2">
+                        <i class="fas fa-users fa-2x text-success"></i>
+                    </div>
+                    <h3 class="text-success mb-0">{{ users|rejectattr('is_admin')|list|length }}</h3>
+                    <p class="text-muted mb-0 small">Customers</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Legend/Help Section -->
+    <div class="card mt-4 border-info">
+        <div class="card-header bg-info text-white">
+            <i class="fas fa-info-circle me-2"></i>User Management Guide
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <h6><i class="fas fa-toggle-on text-success me-2"></i>Active Users</h6>
+                    <p class="small text-muted">Can log in and place orders normally.</p>
+                </div>
+                <div class="col-md-6">
+                    <h6><i class="fas fa-toggle-off text-warning me-2"></i>Inactive Users</h6>
+                    <p class="small text-muted">Cannot log in until reactivated by admin.</p>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-md-6">
+                    <h6><i class="fas fa-shield-alt text-danger me-2"></i>Admin Users</h6>
+                    <p class="small text-muted">Cannot be deactivated for security reasons.</p>
+                </div>
+                <div class="col-md-6">
+                    <h6><i class="fas fa-shopping-cart text-info me-2"></i>Orders Badge</h6>
+                    <p class="small text-muted">Shows total number of orders placed by user.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-users text-muted" style="font-size: 5rem;"></i>
+        <h4 class="text-muted mt-3">No users found</h4>
+        <p class="text-muted">User accounts will appear here when they register.</p>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.table tbody tr.table-secondary {
+    opacity: 0.7;
+}
+.btn-group .btn {
+    font-size: 0.875rem;
+}
+.card {
+    border: none;
+    border-radius: 10px;
+}
+.table thead th {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+.badge {
+    font-weight: 500;
+}
+</style>
+
+<script>
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}

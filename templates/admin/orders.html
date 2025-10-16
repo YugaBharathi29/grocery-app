@@ -1,0 +1,186 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Orders - Admin{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h2><i class="fas fa-shopping-cart me-2"></i>Manage Orders</h2>
+    
+    {% if orders.items %}
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Customer</th>
+                            <th>Products</th>
+                            <th>Total Amount</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders.items %}
+                        <tr>
+                            <td>
+                                <strong class="text-primary">#{{ order.id }}</strong>
+                            </td>
+                            <td>
+                                <div>
+                                    <i class="fas fa-user-circle text-muted me-1"></i>
+                                    <strong>{{ order.user.username }}</strong>
+                                </div>
+                                <small class="text-muted">{{ order.user.email }}</small>
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1">
+                                    {% for item in order.items[:3] %}
+                                        {% if item.product.image %}
+                                            {% if item.product.image.startswith('http') or item.product.image.startswith('data:image') %}
+                                                <img src="{{ item.product.image }}" 
+                                                     class="rounded border" 
+                                                     alt="{{ item.product.name }}" 
+                                                     style="width: 40px; height: 40px; object-fit: cover;"
+                                                     title="{{ item.product.name }}"
+                                                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22%3E%3Crect fill=%22%23f0f0f0%22 width=%2240%22 height=%2240%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2210%22%3E?%3C/text%3E%3C/svg%3E';">
+                                            {% else %}
+                                                <img src="{{ url_for('static', filename='uploads/products/' + item.product.image) }}" 
+                                                     class="rounded border" 
+                                                     alt="{{ item.product.name }}" 
+                                                     style="width: 40px; height: 40px; object-fit: cover;"
+                                                     title="{{ item.product.name }}"
+                                                     onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2240%22 height=%2240%22%3E%3Crect fill=%22%23f0f0f0%22 width=%2240%22 height=%2240%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 dy=%22.3em%22 fill=%22%23999%22 font-size=%2210%22%3E?%3C/text%3E%3C/svg%3E';">
+                                            {% endif %}
+                                        {% else %}
+                                            <div class="rounded border bg-light d-flex align-items-center justify-content-center" 
+                                                 style="width: 40px; height: 40px;">
+                                                <i class="fas fa-image text-muted" style="font-size: 0.8rem;"></i>
+                                            </div>
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if order.items.count() > 3 %}
+                                        <div class="rounded border bg-secondary text-white d-flex align-items-center justify-content-center" 
+                                             style="width: 40px; height: 40px; font-size: 0.7rem;">
+                                            +{{ order.items|length - 3 }}
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            <td>
+                                <span class="fw-bold text-success">₹{{ "%.2f"|format(order.total_amount) }}</span>
+                            </td>
+                            <td>
+                                {% if order.status == 'Pending' %}
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-clock me-1"></i>{{ order.status }}
+                                    </span>
+                                {% elif order.status == 'Processing' %}
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-sync me-1"></i>{{ order.status }}
+                                    </span>
+                                {% elif order.status == 'Shipped' %}
+                                    <span class="badge bg-primary">
+                                        <i class="fas fa-shipping-fast me-1"></i>{{ order.status }}
+                                    </span>
+                                {% elif order.status == 'Delivered' %}
+                                    <span class="badge bg-success">
+                                        <i class="fas fa-check-circle me-1"></i>{{ order.status }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger">
+                                        <i class="fas fa-times-circle me-1"></i>{{ order.status }}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small>{{ order.created_at.strftime('%b %d, %Y') }}</small>
+                                <br>
+                                <small class="text-muted">{{ order.created_at.strftime('%I:%M %p') }}</small>
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group" role="group">
+                                    <a href="{{ url_for('admin.order_detail', id=order.id) }}" 
+                                       class="btn btn-sm btn-outline-success"
+                                       data-bs-toggle="tooltip"
+                                       title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{{ url_for('admin.print_order', id=order.id) }}" 
+                                       class="btn btn-sm btn-outline-primary"
+                                       target="_blank"
+                                       data-bs-toggle="tooltip"
+                                       title="Print Order">
+                                        <i class="fas fa-print"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if orders.pages > 1 %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if orders.has_prev %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('admin.orders', page=orders.prev_num) }}">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+            </li>
+            {% endif %}
+            
+            {% for page_num in orders.iter_pages() %}
+                {% if page_num %}
+                    {% if page_num != orders.page %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('admin.orders', page=page_num) }}">{{ page_num }}</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ page_num }}</span>
+                    </li>
+                    {% endif %}
+                {% else %}
+                <li class="page-item disabled">
+                    <span class="page-link">...</span>
+                </li>
+                {% endif %}
+            {% endfor %}
+            
+            {% if orders.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="{{ url_for('admin.orders', page=orders.next_num) }}">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    {% else %}
+    <div class="text-center py-5">
+        <i class="fas fa-shopping-cart text-muted" style="font-size: 5rem;"></i>
+        <h4 class="text-muted mt-3">No orders found</h4>
+        <p class="text-muted">Orders will appear here once customers start purchasing.</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Initialize tooltips
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+{% endblock %}
